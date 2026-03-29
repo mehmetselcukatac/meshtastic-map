@@ -1,52 +1,48 @@
 services:
-
-  # listens to mqtt packets and saves to database
+  # MQTT Dinleyici Servisi
   meshtastic-mqtt:
     container_name: meshtastic-mqtt
+    image: lokal-meshtastic-map
     depends_on:
       database:
         condition: service_healthy
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-    command: /app/docker/mqtt.sh
+    # Uygulama hiçbir parametre almadan direkt çalışmalı, ayarları env'den çekecek
+    command: >
+      sh -c "node src/mqtt.js $$MQTT_OPTS"
     environment:
-      DATABASE_URL: "mysql://root:password@database:3306/meshtastic-map?connection_limit=100"
-      MQTT_OPTS: "" # add any custom mqtt.js options here
-
-  # runs the web map ui
+      - DATABASE_URL=mysql://root:password@database:3306/meshtastic-map
+      - MQTT_OPTS=--mqtt-broker-url tcp://kurtkoy.eclipse.com.tr:1883 --mqtt-username enerjisarw --mqtt-password Enerji!0226 --mqtt-topic enerjisa/msh/# --mqtt-client-id msaLocalDockerClient --collect-positions
+      
+  # Harita Arayüz Servisi
   meshtastic-map:
     container_name: meshtastic-map
+    image: lokal-meshtastic-map
     depends_on:
       database:
         condition: service_healthy
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-    command: /app/docker/map.sh
+    command: node src/index.js
     ports:
-      - 8080:8080/tcp
+      - 8080:8080
     environment:
-      DATABASE_URL: "mysql://root:password@database:3306/meshtastic-map?connection_limit=100"
-      MAP_OPTS: "" # add any custom index.js options here
+      - DATABASE_URL=mysql://root:password@database:3306/meshtastic-map
+      - MAP_OPTS=
 
-  # runs the database to store everything from mqtt
+  # Veritabanı
   database:
     container_name: database
     image: bitnami/mariadb
     ports:
-      - 3306:3306/tcp
+      - 3306:3306
     environment:
-      MARIADB_DATABASE: "meshtastic-map"
-      MARIADB_ROOT_PASSWORD: "password"
+      - MARIADB_DATABASE=meshtastic-map
+      - MARIADB_ROOT_PASSWORD=password
     volumes:
       - database_data:/bitnami/mariadb
     healthcheck:
       test: ['CMD', '/opt/bitnami/scripts/mariadb/healthcheck.sh']
-      interval: 15s
+      interval: 10s
       timeout: 5s
-      retries: 6
-      start_period: 5s
+      retries: 5
 
 volumes:
   database_data:

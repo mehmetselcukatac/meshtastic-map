@@ -1,16 +1,19 @@
 FROM node:lts-alpine
 
-WORKDIR /app
-
-# Copy only package files and install deps
-# This layer will be cached as long as package*.json don't change
-COPY package*.json package-lock.json* ./
-RUN npm ci
-
-# Copy the rest of your source
-COPY . .
-
+# Prisma'nın çalışması için gerekli kütüphane
 RUN apk add --no-cache openssl
 
+WORKDIR /app
+
+# Önce bağımlılıkları ve prisma şemasını kopyala
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Bağımlılıkları yükle ve Prisma istemcisini oluştur
+RUN npm ci
+RUN npx prisma generate
+
+# Sonra kaynak kodları kopyala
+COPY . .
 
 EXPOSE 8080

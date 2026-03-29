@@ -1,0 +1,51 @@
+services:
+
+  # MQTT paketlerini dinleyen ve veritabanına kaydeden servis
+  meshtastic-mqtt:
+    container_name: meshtastic-mqtt
+    depends_on:
+      database:
+        condition: service_healthy
+    # İnternetten çekmek yerine sizin oluşturduğunuz imajı kullanır
+    image: lokal-meshtastic-map
+    command: node src/index.js mqtt
+    environment:
+      DATABASE_URL: "mysql://root:password@database:3306/meshtastic-map?connection_limit=100"
+      # KRİTİK AYAR: Kendi MQTT bilgilerinizi buraya girin
+      # Örnek: "--broker tcp://kurtkoy.eclipse.com.tr:1883 --username enerjisarw --password Enerji!0226 --topic enerjisa/msh/EU_868/#"
+      MQTT_OPTS: "--broker tcp://kurtkoy.eclipse.com.tr:1883 --username enerjisarw --password Enerji!0226 --topic enerjisa/msh/EU_868/#"
+
+  # Harita arayüzünü sunan servis
+  meshtastic-map:
+    container_name: meshtastic-map
+    depends_on:
+      database:
+        condition: service_healthy
+    image: lokal-meshtastic-map
+    command: node src/index.js map
+    ports:
+      - 8080:8080/tcp
+    environment:
+      DATABASE_URL: "mysql://root:password@database:3306/meshtastic-map?connection_limit=100"
+      MAP_OPTS: "" 
+
+  # Veritabanı servisi
+  database:
+    container_name: database
+    image: bitnami/mariadb
+    ports:
+      - 3306:3306/tcp
+    environment:
+      MARIADB_DATABASE: "meshtastic-map"
+      MARIADB_ROOT_PASSWORD: "password"
+    volumes:
+      - database_data:/bitnami/mariadb
+    healthcheck:
+      test: ['CMD', '/opt/bitnami/scripts/mariadb/healthcheck.sh']
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 5s
+
+volumes:
+  database_data:
