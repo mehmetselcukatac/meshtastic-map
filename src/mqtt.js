@@ -715,7 +715,8 @@ client.on("connect", () => {
 // handle message received
 client.on("message", async (topic, message) => {
     try {
-
+		console.log(`[MQTT] Yeni paket geldi! Topic: ${topic} - Boyut: ${message.length} byte.  ${message}`);
+		
         // decode service envelope
         const envelope = ServiceEnvelope.decode(message);
         if(!envelope.packet){
@@ -800,7 +801,7 @@ client.on("message", async (topic, message) => {
             // don't care if updating mqtt timestamp fails
         }
 
-        const logKnownPacketTypes = false;
+        const logKnownPacketTypes = true;
 
         // if allowed portnums are configured, ignore portnums that are not in the list
         if(allowedPortnums != null && !allowedPortnums.includes(portnum)){

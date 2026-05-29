@@ -11,7 +11,7 @@ services:
       sh -c "node src/mqtt.js $$MQTT_OPTS"
     environment:
       - DATABASE_URL=mysql://root:password@database:3306/meshtastic-map
-      - MQTT_OPTS=--mqtt-broker-url tcp://host.docker.internal:1883 --mqtt-username enerjisarw --mqtt-password Enerji!0226 --mqtt-topic enerjisa/msh/# --mqtt-client-id msaLocalDockerClient --collect-positions --collect-map-reports --log-unknown-portnums
+      - MQTT_OPTS=--mqtt-broker-url tcp://kurtkoy.eclipse.com.tr:1883 --mqtt-username enerjisarw --mqtt-password Enerji!0226 --mqtt-topic enerjisa/msh/# --mqtt-client-id msaLocalDockerClient --collect-positions --collect-map-reports --log-unknown-portnums
       
   # Harita Arayüz Servisi
   meshtastic-map:
@@ -44,14 +44,5 @@ services:
       timeout: 5s
       retries: 5
 
-# Web Tabanlı Veritabanı Arayüzü
-  db-admin:
-    container_name: db-admin
-    image: adminer
-    ports:
-      - 8081:8080 # Bilgisayarınızda http://localhost:8081 adresinden erişeceksiniz
-    depends_on:
-      - database
-      
 volumes:
   database_data:
