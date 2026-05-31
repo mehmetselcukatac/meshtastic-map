@@ -127,6 +127,15 @@ app.get('/api', async (req, res) => {
             },
         },
         {
+            "path": "/api/v1/nodes/:nodeId/air-quality-metrics",
+            "description": "Air quality metrics for a meshtastic node",
+            "params": {
+                "count": "How many results to return",
+                "time_from": "Only include metrics created after this unix timestamp (milliseconds)",
+                "time_to": "Only include metrics created before this unix timestamp (milliseconds)",
+            },
+        },
+        {
             "path": "/api/v1/nodes/:nodeId/neighbours",
             "description": "Neighbours for a meshtastic node",
         },
@@ -391,6 +400,56 @@ app.get('/api/v1/nodes/:nodeId/power-metrics', async (req, res) => {
 
         res.json({
             power_metrics: powerMetrics,
+        });
+
+    } catch(err) {
+        console.error(err);
+        res.status(500).json({
+            message: "Something went wrong, try again later.",
+        });
+    }
+});
+
+app.get('/api/v1/nodes/:nodeId/air-quality-metrics', async (req, res) => {
+    try {
+
+        const nodeId = parseInt(req.params.nodeId);
+        const count = req.query.count ? parseInt(req.query.count) : undefined;
+        const timeFrom = req.query.time_from ? parseInt(req.query.time_from) : undefined;
+        const timeTo = req.query.time_to ? parseInt(req.query.time_to) : undefined;
+
+        // find node
+        const node = await prisma.node.findFirst({
+            where: {
+                node_id: nodeId,
+            },
+        });
+
+        // make sure node exists
+        if(!node){
+            res.status(404).json({
+                message: "Not Found",
+            });
+            return;
+        }
+
+        // get latest air quality metrics
+        const airQualityMetrics = await prisma.airQualityMetric.findMany({
+            where: {
+                node_id: node.node_id,
+                created_at: {
+                    gte: timeFrom ? new Date(timeFrom) : undefined,
+                    lte: timeTo ? new Date(timeTo) : undefined,
+                },
+            },
+            orderBy: {
+                id: 'desc',
+            },
+            take: count,
+        });
+
+        res.json({
+            air_quality_metrics: airQualityMetrics,
         });
 
     } catch(err) {

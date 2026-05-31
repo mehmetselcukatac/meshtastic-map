@@ -148,6 +148,50 @@ model EnvironmentMetric {
   @@map("environment_metrics")
 }
 
+model AirQualityMetric {
+  id                     BigInt  @id @default(autoincrement())
+  node_id                BigInt
+  packet_id              BigInt?
+
+  pm10_standard          Int?
+  pm25_standard          Int?
+  pm100_standard         Int?
+  pm10_environmental     Int?
+  pm25_environmental     Int?
+  pm100_environmental    Int?
+  pm40_standard          Int?
+
+  particles_03um         Int?
+  particles_05um         Int?
+  particles_10um         Int?
+  particles_25um         Int?
+  particles_40um         Int?
+  particles_50um         Int?
+  particles_100um        Int?
+
+  co2                    Int?
+  co2_temperature        Decimal?
+  co2_humidity           Decimal?
+  form_formaldehyde      Decimal?
+  form_humidity          Decimal?
+  form_temperature       Decimal?
+
+  pm_temperature         Decimal?
+  pm_humidity            Decimal?
+  pm_voc_idx             Decimal?
+  pm_nox_idx             Decimal?
+  particles_tps          Decimal?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  @@index(created_at)
+  @@index(updated_at)
+  @@index(node_id)
+  @@index(packet_id)
+  @@map("air_quality_metrics")
+}
+
 model PowerMetric {
   id        BigInt  @id @default(autoincrement())
   node_id   BigInt

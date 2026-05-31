@@ -800,6 +800,24 @@ client.on("message", async (topic, message) => {
         } catch(e) {
             // don't care if updating mqtt timestamp fails
         }
+        
+        // Also mark the source node as having its packet reach MQTT so the
+        // UI shows the node as recently active (helps when packets are
+        // gated via another node). This updates the node row and will bump
+        // `updated_at` and `mqtt_connection_state_updated_at` for the source.
+        try {
+            console.log(`Updating mqtt_connection_state_updated_at for source node from=${envelope.packet.from.toString(16)}`);
+            await prisma.node.updateMany({
+                where: {
+                    node_id: convertHexIdToNumericId(envelope.packet.from),
+                },
+                data: {
+                    mqtt_connection_state_updated_at: new Date(),
+                },
+            });
+        } catch (e) {
+            console.error(`Failed to update mqtt_connection_state_updated_at for source node from=${envelope.packet.from.toString(16)}`, e);
+        }
 
         const logKnownPacketTypes = true;
 
@@ -1124,6 +1142,64 @@ client.on("message", async (topic, message) => {
                                 voltage: data.voltage,
                                 channel_utilization: data.channel_utilization,
                                 air_util_tx: data.air_util_tx,
+                            },
+                        });
+                    }
+
+                } catch (e) {
+                    console.error(e);
+                }
+
+            }
+
+            // handle air quality metrics
+            if(telemetry.airQualityMetrics){
+
+                const airQualityMetric = telemetry.airQualityMetrics;
+
+                // create air quality metric record
+                try {
+
+                    const existingDuplicateAirQualityMetric = await prisma.airQualityMetric.findFirst({
+                        where: {
+                            node_id: envelope.packet.from,
+                            packet_id: envelope.packet.id,
+                            created_at: {
+                                gte: new Date(Date.now() - 15000),
+                            },
+                        }
+                    });
+
+                    if(!existingDuplicateAirQualityMetric){
+                        await prisma.airQualityMetric.create({
+                            data: {
+                                node_id: envelope.packet.from,
+                                packet_id: envelope.packet.id,
+                                pm10_standard: airQualityMetric.pm10Standard ?? null,
+                                pm25_standard: airQualityMetric.pm25Standard ?? null,
+                                pm100_standard: airQualityMetric.pm100Standard ?? null,
+                                pm10_environmental: airQualityMetric.pm10Environmental ?? null,
+                                pm25_environmental: airQualityMetric.pm25Environmental ?? null,
+                                pm100_environmental: airQualityMetric.pm100Environmental ?? null,
+                                pm40_standard: airQualityMetric.pm40Standard ?? null,
+                                particles_03um: airQualityMetric.particles_03um ?? null,
+                                particles_05um: airQualityMetric.particles_05um ?? null,
+                                particles_10um: airQualityMetric.particles_10um ?? null,
+                                particles_25um: airQualityMetric.particles_25um ?? null,
+                                particles_40um: airQualityMetric.particles_40um ?? null,
+                                particles_50um: airQualityMetric.particles_50um ?? null,
+                                particles_100um: airQualityMetric.particles_100um ?? null,
+                                co2: airQualityMetric.co2 ?? null,
+                                co2_temperature: airQualityMetric.co2Temperature ?? null,
+                                co2_humidity: airQualityMetric.co2Humidity ?? null,
+                                form_formaldehyde: airQualityMetric.formFormaldehyde ?? null,
+                                form_humidity: airQualityMetric.formHumidity ?? null,
+                                form_temperature: airQualityMetric.formTemperature ?? null,
+                                pm_temperature: airQualityMetric.pmTemperature ?? null,
+                                pm_humidity: airQualityMetric.pmHumidity ?? null,
+                                pm_voc_idx: airQualityMetric.pmVocIdx ?? null,
+                                pm_nox_idx: airQualityMetric.pmNoxIdx ?? null,
+                                particles_tps: airQualityMetric.particlesTps ?? null,
                             },
                         });
                     }

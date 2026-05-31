@@ -918,6 +918,154 @@
                                 </ul>
                             </div>
 
+                            <!-- air quality metrics -->
+                            <div>
+                                <div class="flex bg-gray-200 p-2 font-semibold">
+                                    <div class="my-auto">Air Quality Metrics</div>
+                                    <div class="my-auto ml-auto">
+                                        <select v-model="airQualityMetricsTimeRange" class="block w-full rounded-md border-0 py-0.5 pl-2 pr-8 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-blue-500 sm:text-sm sm:leading-6">
+                                            <option value="1d">1 Day</option>
+                                            <option value="3d">3 Days</option>
+                                            <option value="7d">7 Days</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <ul role="list" class="flex-1 divide-y divide-gray-200">
+
+                                    <!-- air quality chart -->
+                                    <li>
+                                        <div class="px-4 py-2">
+                                            <div class="w-full">
+                                                <canvas id="airQualityMetricsChart" style="height:150px;"></canvas>
+                                                <div class="flex">
+                                                    <div class="mx-auto flex space-x-2">
+                                                        <div class="flex mx-auto">
+                                                            <div class="my-auto w-2 h-2 bg-blue-500 rounded-full"></div>
+                                                            <div class="my-auto ml-1 text-sm text-gray-500">PM1.0</div>
+                                                        </div>
+                                                        <div class="flex mx-auto">
+                                                            <div class="my-auto w-2 h-2 bg-green-500 rounded-full"></div>
+                                                            <div class="my-auto ml-1 text-sm text-gray-500">PM2.5</div>
+                                                        </div>
+                                                        <div class="flex mx-auto">
+                                                            <div class="my-auto w-2 h-2 bg-orange-500 rounded-full"></div>
+                                                            <div class="my-auto ml-1 text-sm text-gray-500">PM10</div>
+                                                        </div>
+                                                        <div class="flex mx-auto">
+                                                            <div class="my-auto w-2 h-2 bg-purple-500 rounded-full"></div>
+                                                            <div class="my-auto ml-1 text-sm text-gray-500">PM4.0</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="px-4 py-2">
+                                            <div class="w-full">
+                                                <canvas id="airQualityTempHumidityChart" style="height:150px;"></canvas>
+                                                <div class="flex">
+                                                    <div class="mx-auto flex space-x-2">
+                                                        <div class="flex mx-auto">
+                                                            <div class="my-auto w-2 h-2 bg-sky-500 rounded-full"></div>
+                                                            <div class="my-auto ml-1 text-sm text-gray-500">PM Temp</div>
+                                                        </div>
+                                                        <div class="flex mx-auto">
+                                                            <div class="my-auto w-2 h-2 bg-teal-500 rounded-full"></div>
+                                                            <div class="my-auto ml-1 text-sm text-gray-500">PM Humidity</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="px-4 py-2">
+                                            <div class="w-full">
+                                                <canvas id="airQualityVocNoxChart" style="height:150px;"></canvas>
+                                                <div class="flex">
+                                                    <div class="mx-auto flex space-x-2">
+                                                        <div class="flex mx-auto">
+                                                            <div class="my-auto w-2 h-2 bg-pink-500 rounded-full"></div>
+                                                            <div class="my-auto ml-1 text-sm text-gray-500">VOC Index</div>
+                                                        </div>
+                                                        <div class="flex mx-auto">
+                                                            <div class="my-auto w-2 h-2 bg-violet-500 rounded-full"></div>
+                                                            <div class="my-auto ml-1 text-sm text-gray-500">NOx Index</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </li>
+
+                                    <!-- pm1 -->
+                                    <li class="flex p-3">
+                                        <div class="text-sm font-medium text-gray-900">PM1.0</div>
+                                        <div class="ml-auto text-sm text-gray-700">
+                                            <span v-if="selectedNodeLatestAirQualityMetric?.pm10_standard != null">{{ selectedNodeLatestAirQualityMetric.pm10_standard }}µg/m³</span>
+                                            <span v-else>???</span>
+                                        </div>
+                                    </li>
+
+                                    <!-- pm2.5 -->
+                                    <li class="flex p-3">
+                                        <div class="text-sm font-medium text-gray-900">PM2.5</div>
+                                        <div class="ml-auto text-sm text-gray-700">
+                                            <span v-if="selectedNodeLatestAirQualityMetric?.pm25_standard != null">{{ selectedNodeLatestAirQualityMetric.pm25_standard }}µg/m³</span>
+                                            <span v-else>???</span>
+                                        </div>
+                                    </li>
+
+                                    <!-- pm10 -->
+                                    <li class="flex p-3">
+                                        <div class="text-sm font-medium text-gray-900">PM10</div>
+                                        <div class="ml-auto text-sm text-gray-700">
+                                            <span v-if="selectedNodeLatestAirQualityMetric?.pm100_standard != null">{{ selectedNodeLatestAirQualityMetric.pm100_standard }}µg/m³</span>
+                                            <span v-else>???</span>
+                                        </div>
+                                    </li>
+
+                                    <!-- pm4 -->
+                                    <li class="flex p-3">
+                                        <div class="text-sm font-medium text-gray-900">PM4.0</div>
+                                        <div class="ml-auto text-sm text-gray-700">
+                                            <span v-if="selectedNodeLatestAirQualityMetric?.pm40_standard != null">{{ selectedNodeLatestAirQualityMetric.pm40_standard }}µg/m³</span>
+                                            <span v-else>???</span>
+                                        </div>
+                                    </li>
+
+                                    <!-- pm temperature -->
+                                    <li class="flex p-3">
+                                        <div class="text-sm font-medium text-gray-900">PM Sensor Temp</div>
+                                        <div class="ml-auto text-sm text-gray-700">
+                                            <span v-if="selectedNodeLatestAirQualityMetric?.pm_temperature != null">{{ Number(selectedNodeLatestAirQualityMetric.pm_temperature).toFixed(1) }}°C</span>
+                                            <span v-else>???</span>
+                                        </div>
+                                    </li>
+
+                                    <!-- pm humidity -->
+                                    <li class="flex p-3">
+                                        <div class="text-sm font-medium text-gray-900">PM Sensor Humidity</div>
+                                        <div class="ml-auto text-sm text-gray-700">
+                                            <span v-if="selectedNodeLatestAirQualityMetric?.pm_humidity != null">{{ Number(selectedNodeLatestAirQualityMetric.pm_humidity).toFixed(1) }}%</span>
+                                            <span v-else>???</span>
+                                        </div>
+                                    </li>
+
+                                    <!-- voc / nox -->
+                                    <li class="flex p-3">
+                                        <div class="text-sm font-medium text-gray-900">VOC / NOx</div>
+                                        <div class="ml-auto text-sm text-gray-700">
+                                            <span v-if="selectedNodeLatestAirQualityMetric?.pm_voc_idx != null">VOC {{ Number(selectedNodeLatestAirQualityMetric.pm_voc_idx).toFixed(0) }}</span>
+                                            <span v-if="selectedNodeLatestAirQualityMetric?.pm_nox_idx != null"> / NOx {{ Number(selectedNodeLatestAirQualityMetric.pm_nox_idx).toFixed(0) }}</span>
+                                            <span v-if="selectedNodeLatestAirQualityMetric?.pm_voc_idx == null && selectedNodeLatestAirQualityMetric?.pm_nox_idx == null">???</span>
+                                        </div>
+                                    </li>
+
+                                </ul>
+                            </div>
+
                             <!-- power metrics -->
                             <div>
                                 <div class="flex bg-gray-200 p-2 font-semibold">
@@ -1787,12 +1935,14 @@
                 selectedNode: null,
                 selectedNodeDeviceMetrics: [],
                 selectedNodeEnvironmentMetrics: [],
+                selectedNodeAirQualityMetrics: [],
                 selectedNodePowerMetrics: [],
                 selectedNodeMqttMetrics: [],
                 selectedNodeTraceroutes: [],
 
                 deviceMetricsTimeRange: "3d",
                 environmentMetricsTimeRange: "3d",
+                airQualityMetricsTimeRange: "3d",
                 powerMetricsTimeRange: "3d",
 
                 isPositionHistoryModalExpanded: true,
@@ -1828,6 +1978,7 @@
                 this.selectedNode = node;
                 this.loadNodeDeviceMetrics(node.node_id);
                 this.loadNodeEnvironmentMetrics(node.node_id);
+                this.loadNodeAirQualityMetrics(node.node_id);
                 this.loadNodePowerMetrics(node.node_id);
                 this.loadNodeMqttMetrics(node.node_id);
                 this.loadNodeTraceroutes(node.node_id);
@@ -1985,6 +2136,40 @@
                 }).catch(() => {
                     this.selectedNodePowerMetrics = [];
                     this.renderPowerMetricCharts();
+                });
+            },
+            loadNodeAirQualityMetrics: function(nodeId) {
+
+                const oneDayAgoInMilliseconds = new Date().getTime() - (86400 * 1000);
+                const threeDaysAgoInMilliseconds = new Date().getTime() - (259200 * 1000);
+                const sevenDaysAgoInMilliseconds = new Date().getTime() - (604800 * 1000);
+
+                var timeFrom = threeDaysAgoInMilliseconds;
+                switch(this.airQualityMetricsTimeRange){
+                    case "1d": {
+                        timeFrom = oneDayAgoInMilliseconds;
+                        break;
+                    }
+                    case "3d": {
+                        timeFrom = threeDaysAgoInMilliseconds;
+                        break;
+                    }
+                    case "7d": {
+                        timeFrom = sevenDaysAgoInMilliseconds;
+                        break;
+                    }
+                }
+
+                window.axios.get(`/api/v1/nodes/${nodeId}/air-quality-metrics`, {
+                    params: {
+                        time_from: timeFrom,
+                    },
+                }).then((response) => {
+                    this.selectedNodeAirQualityMetrics = response.data.air_quality_metrics.reverse();
+                    this.renderAirQualityMetricCharts();
+                }).catch(() => {
+                    this.selectedNodeAirQualityMetrics = [];
+                    this.renderAirQualityMetricCharts();
                 });
             },
             loadNodeMqttMetrics: function(nodeId) {
@@ -2263,6 +2448,301 @@
                             },
                         },
                     }
+                });
+
+            },
+            renderAirQualityMetricCharts: function() {
+                try {
+                    this.updateAirQualityPMChart();
+                    this.updateAirQualityTempHumidityChart();
+                    this.updateAirQualityVocNoxChart();
+                } catch(e) {
+                    console.log(e);
+                }
+            },
+            updateAirQualityPMChart: function() {
+
+                const chartElementId = "airQualityMetricsChart";
+                const existingChart = window.Chart.getChart(chartElementId);
+                if(existingChart != null){
+                    existingChart.destroy();
+                }
+
+                const chartElement = window.document.getElementById(chartElementId);
+                if(!chartElement){
+                    return;
+                }
+
+                const labels = [];
+                const pm10Metrics = [];
+                const pm25Metrics = [];
+                const pm100Metrics = [];
+                const pm40Metrics = [];
+                for(const metric of this.selectedNodeAirQualityMetrics){
+                    labels.push(moment(metric.created_at));
+                    pm10Metrics.push(metric.pm10_standard);
+                    pm25Metrics.push(metric.pm25_standard);
+                    pm100Metrics.push(metric.pm100_standard);
+                    pm40Metrics.push(metric.pm40_standard);
+                }
+
+                new window.Chart(chartElement, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'PM1.0',
+                                suffix: 'µg/m³',
+                                borderColor: '#3b82f6',
+                                backgroundColor: '#3b82f6',
+                                pointStyle: false,
+                                fill: false,
+                                data: pm10Metrics,
+                            },
+                            {
+                                label: 'PM2.5',
+                                suffix: 'µg/m³',
+                                borderColor: '#22c55e',
+                                backgroundColor: '#22c55e',
+                                pointStyle: false,
+                                fill: false,
+                                data: pm25Metrics,
+                            },
+                            {
+                                label: 'PM10',
+                                suffix: 'µg/m³',
+                                borderColor: '#f97316',
+                                backgroundColor: '#f97316',
+                                pointStyle: false,
+                                fill: false,
+                                data: pm100Metrics,
+                            },
+                            {
+                                label: 'PM4.0',
+                                suffix: 'µg/m³',
+                                borderColor: '#c026d3',
+                                backgroundColor: '#c026d3',
+                                pointStyle: false,
+                                fill: false,
+                                data: pm40Metrics,
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        borderWidth: 2,
+                        elements: {
+                            point: {
+                                radius: 2,
+                            },
+                        },
+                        scales: {
+                            x: {
+                                position: 'top',
+                                type: 'time',
+                                time: {
+                                    unit: 'day',
+                                    displayFormats: {
+                                        day: 'MMM DD',
+                                    },
+                                },
+                            },
+                            y: {
+                                min: 0,
+                            },
+                        },
+                        plugins: {
+                            legend: {
+                                display: false,
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: (item) => {
+                                        return `${item.dataset.label}: ${item.formattedValue}${item.dataset.suffix}`;
+                                    },
+                                },
+                            },
+                        },
+                    },
+                });
+
+            },
+            updateAirQualityTempHumidityChart: function() {
+
+                const chartElementId = "airQualityTempHumidityChart";
+                const existingChart = window.Chart.getChart(chartElementId);
+                if(existingChart != null){
+                    existingChart.destroy();
+                }
+
+                const chartElement = window.document.getElementById(chartElementId);
+                if(!chartElement){
+                    return;
+                }
+
+                const labels = [];
+                const temperatureMetrics = [];
+                const humidityMetrics = [];
+                for(const metric of this.selectedNodeAirQualityMetrics){
+                    labels.push(moment(metric.created_at));
+                    temperatureMetrics.push(metric.pm_temperature);
+                    humidityMetrics.push(metric.pm_humidity);
+                }
+
+                new window.Chart(chartElement, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'PM Temp',
+                                suffix: '°C',
+                                borderColor: '#0ea5e9',
+                                backgroundColor: '#0ea5e9',
+                                pointStyle: false,
+                                fill: false,
+                                data: temperatureMetrics,
+                            },
+                            {
+                                label: 'PM Humidity',
+                                suffix: '%',
+                                borderColor: '#14b8a6',
+                                backgroundColor: '#14b8a6',
+                                pointStyle: false,
+                                fill: false,
+                                data: humidityMetrics,
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        borderWidth: 2,
+                        elements: {
+                            point: {
+                                radius: 2,
+                            },
+                        },
+                        scales: {
+                            x: {
+                                position: 'top',
+                                type: 'time',
+                                time: {
+                                    unit: 'day',
+                                    displayFormats: {
+                                        day: 'MMM DD',
+                                    },
+                                },
+                            },
+                            y: {
+                                min: 0,
+                            },
+                        },
+                        plugins: {
+                            legend: {
+                                display: false,
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: (item) => {
+                                        return `${item.dataset.label}: ${item.formattedValue}${item.dataset.suffix}`;
+                                    },
+                                },
+                            },
+                        },
+                    },
+                });
+
+            },
+            updateAirQualityVocNoxChart: function() {
+
+                const chartElementId = "airQualityVocNoxChart";
+                const existingChart = window.Chart.getChart(chartElementId);
+                if(existingChart != null){
+                    existingChart.destroy();
+                }
+
+                const chartElement = window.document.getElementById(chartElementId);
+                if(!chartElement){
+                    return;
+                }
+
+                const labels = [];
+                const vocMetrics = [];
+                const noxMetrics = [];
+                for(const metric of this.selectedNodeAirQualityMetrics){
+                    labels.push(moment(metric.created_at));
+                    vocMetrics.push(metric.pm_voc_idx);
+                    noxMetrics.push(metric.pm_nox_idx);
+                }
+
+                new window.Chart(chartElement, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'VOC Index',
+                                suffix: '',
+                                borderColor: '#f43f5e',
+                                backgroundColor: '#f43f5e',
+                                pointStyle: false,
+                                fill: false,
+                                data: vocMetrics,
+                            },
+                            {
+                                label: 'NOx Index',
+                                suffix: '',
+                                borderColor: '#8b5cf6',
+                                backgroundColor: '#8b5cf6',
+                                pointStyle: false,
+                                fill: false,
+                                data: noxMetrics,
+                            },
+                        ],
+                    },
+                    options: {
+                        responsive: true,
+                        borderWidth: 2,
+                        elements: {
+                            point: {
+                                radius: 2,
+                            },
+                        },
+                        scales: {
+                            x: {
+                                position: 'top',
+                                type: 'time',
+                                time: {
+                                    unit: 'day',
+                                    displayFormats: {
+                                        day: 'MMM DD',
+                                    },
+                                },
+                            },
+                            y: {
+                                min: 0,
+                            },
+                        },
+                        plugins: {
+                            legend: {
+                                display: false,
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false,
+                                callbacks: {
+                                    label: (item) => {
+                                        return `${item.dataset.label}: ${item.formattedValue}${item.dataset.suffix}`;
+                                    },
+                                },
+                            },
+                        },
+                    },
                 });
 
             },
@@ -2632,6 +3112,9 @@
             selectedNodeLatestPowerMetric() {
                 const [ latestPowerMetric ] = this.selectedNodePowerMetrics.slice(-1);
                 return latestPowerMetric;
+            },
+            selectedNodeLatestAirQualityMetric() {
+                return this.selectedNodeAirQualityMetrics.slice(-1)[0] ?? null;
             },
         },
         watch: {
