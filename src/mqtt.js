@@ -702,7 +702,24 @@ function decrypt(packet) {
  * @returns {bigint} the node id in numeric form
  */
 function convertHexIdToNumericId(hexId) {
-    return BigInt('0x' + hexId.replaceAll("!", ""));
+    if(hexId == null){
+        return null;
+    }
+
+    if(typeof hexId === "bigint"){
+        return hexId;
+    }
+
+    if(typeof hexId === "number"){
+        return BigInt(hexId);
+    }
+
+    if(typeof hexId === "string"){
+        const cleanedHexId = hexId.replace(/!/g, "");
+        return BigInt('0x' + cleanedHexId);
+    }
+
+    throw new Error(`Unsupported node id type: ${typeof hexId}`);
 }
 
 // subscribe to everything when connected
