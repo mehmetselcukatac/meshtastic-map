@@ -1,23 +1,24 @@
 services:
-  # MQTT Dinleyici Servisi
   meshtastic-mqtt:
     container_name: meshtastic-mqtt
-    image: lokal-meshtastic-map
+    # Eğer env dosyasında COMPOSE_BUILD tanımlıysa klasörden derler, yoksa imaj arar
+    build: ${COMPOSE_BUILD_PATH:-.} 
+    image: ${MQTT_IMAGE_NAME:-lokal-meshtastic-map}
+    restart: ${RESTART_POLICY:-no}
     depends_on:
       database:
         condition: service_healthy
-    # Uygulama hiçbir parametre almadan direkt çalışmalı, ayarları env'den çekecek
     command: >
       sh -c "node src/mqtt.js $$MQTT_OPTS"
     environment:
       - DATABASE_URL=mysql://root:password@database:3306/meshtastic-map
-      - MQTT_OPTS=--mqtt-broker-url tcp://192.168.1.11:1883 --mqtt-username enerjisarw --mqtt-password Enerji!0226 --mqtt-topic enerjisa/msh/# --mqtt-client-id msaLocalDockerClient --collect-positions --collect-map-reports --log-unknown-portnums
-    # - MQTT_OPTS=--mqtt-broker-url tcp://host.docker.internal:1883 --mqtt-username enerjisarw --mqtt-password Enerji!0226 --mqtt-topic enerjisa/msh/# --mqtt-client-id msaLocalDockerClient --collect-positions --collect-map-reports --log-unknown-portnums
-      
-  # Harita Arayüz Servisi
+      - MQTT_OPTS=${MQTT_OPTS}
+
   meshtastic-map:
     container_name: meshtastic-map
-    image: lokal-meshtastic-map
+    build: ${COMPOSE_BUILD_PATH:-.}
+    image: ${MAP_IMAGE_NAME:-lokal-meshtastic-map}
+    restart: ${RESTART_POLICY:-no}
     depends_on:
       database:
         condition: service_healthy
@@ -28,10 +29,10 @@ services:
       - DATABASE_URL=mysql://root:password@database:3306/meshtastic-map
       - MAP_OPTS=
 
-  # Veritabanı
   database:
     container_name: database
     image: bitnami/mariadb
+    restart: ${RESTART_POLICY:-no}
     ports:
       - 3306:3306
     environment:
@@ -45,12 +46,12 @@ services:
       timeout: 5s
       retries: 5
 
-# Web Tabanlı Veritabanı Arayüzü
   db-admin:
     container_name: db-admin
     image: adminer
+    restart: ${RESTART_POLICY:-no}
     ports:
-      - 8081:8080 # Bilgisayarınızda http://localhost:8081 adresinden erişeceksiniz
+      - 8081:8080
     depends_on:
       - database
       
