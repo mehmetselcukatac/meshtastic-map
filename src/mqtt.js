@@ -1124,19 +1124,46 @@ client.on("message", async (topic, message) => {
             // data to update
             const data = {};
 
-            // handle device metrics
-            if(telemetry.deviceMetrics){
+            // handle device metrics and air quality telemetry battery/voltage values
+            //   - deviceMetrics is the preferred source for battery/voltage
+            //   - airQualityMetrics can also include these fields, so use them as fallback
+            const deviceMetrics = telemetry.deviceMetrics;
+            const airQualityMetrics = telemetry.airQualityMetrics;
 
-                data.battery_level = telemetry.deviceMetrics.batteryLevel !== 0 ? telemetry.deviceMetrics.batteryLevel : null;
-                data.voltage = telemetry.deviceMetrics.voltage !== 0 ? telemetry.deviceMetrics.voltage : null;
-                data.channel_utilization = telemetry.deviceMetrics.channelUtilization !== 0 ? telemetry.deviceMetrics.channelUtilization : null;
-                data.air_util_tx = telemetry.deviceMetrics.airUtilTx !== 0 ? telemetry.deviceMetrics.airUtilTx : null;
-                data.uptime_seconds = telemetry.deviceMetrics.uptimeSeconds !== 0 ? telemetry.deviceMetrics.uptimeSeconds : null;
+            let batteryLevel = null;
+            let voltage = null;
 
-                // create device metric
+            if(deviceMetrics){
+                if(deviceMetrics.batteryLevel != null){
+                    batteryLevel = deviceMetrics.batteryLevel;
+                }
+                if(deviceMetrics.voltage != null){
+                    voltage = deviceMetrics.voltage;
+                }
+                data.channel_utilization = deviceMetrics.channelUtilization != null ? deviceMetrics.channelUtilization : null;
+                data.air_util_tx = deviceMetrics.airUtilTx != null ? deviceMetrics.airUtilTx : null;
+                data.uptime_seconds = deviceMetrics.uptimeSeconds != null ? deviceMetrics.uptimeSeconds : null;
+            }
+
+            if(airQualityMetrics){
+                // Only override battery/voltage from air quality telemetry when deviceMetrics did not already provide them.
+                if(batteryLevel == null && airQualityMetrics.batteryLevel != null){
+                    batteryLevel = airQualityMetrics.batteryLevel;
+                }
+                if(voltage == null && airQualityMetrics.voltage != null){
+                    voltage = airQualityMetrics.voltage;
+                }
+            }
+
+            // Persist the selected battery and voltage values into node state.
+            data.battery_level = batteryLevel != null ? batteryLevel : null;
+            data.voltage = voltage != null ? voltage : null;
+
+            if(batteryLevel != null || voltage != null || data.channel_utilization != null || data.air_util_tx != null){
                 try {
 
-                    // find an existing metric with duplicate information created in the last 15 seconds
+                    // Avoid duplicate device metrics when the same values arrive repeatedly.
+                    // The window is 15 seconds to prevent noise from producing extra rows.
                     const existingDuplicateDeviceMetric = await prisma.deviceMetric.findFirst({
                         where: {
                             node_id: envelope.packet.from,
@@ -1148,7 +1175,7 @@ client.on("message", async (topic, message) => {
                                 gte: new Date(Date.now() - 15000), // created in the last 15 seconds
                             },
                         }
-                    })
+                    });
 
                     // create metric if no duplicates found
                     if(!existingDuplicateDeviceMetric){
@@ -1166,13 +1193,21 @@ client.on("message", async (topic, message) => {
                 } catch (e) {
                     console.error(e);
                 }
-
             }
 
             // handle air quality metrics
             if(telemetry.airQualityMetrics){
 
                 const airQualityMetric = telemetry.airQualityMetrics;
+                const airQualityTemperature = airQualityMetric.formTemperature !== 0 ? airQualityMetric.formTemperature : airQualityMetric.pmTemperature !== 0 ? airQualityMetric.pmTemperature : null;
+                const airQualityHumidity = airQualityMetric.formHumidity !== 0 ? airQualityMetric.formHumidity : airQualityMetric.pmHumidity !== 0 ? airQualityMetric.pmHumidity : null;
+
+                if(airQualityTemperature !== null){
+                    data.temperature = airQualityTemperature;
+                }
+                if(airQualityHumidity !== null){
+                    data.relative_humidity = airQualityHumidity;
+                }
 
                 // create air quality metric record
                 try {
