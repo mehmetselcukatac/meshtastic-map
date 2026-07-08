@@ -6,6 +6,7 @@ const protobufjs = require("protobufjs");
 const commandLineArgs = require("command-line-args");
 const commandLineUsage = require("command-line-usage");
 const PositionUtil = require("./utils/position_util");
+const { extractNodeLocationFromTelemetry } = require("./utils/telemetry_location");
 
 // create prisma db client
 const { PrismaClient } = require("@prisma/client");
@@ -1123,6 +1124,7 @@ client.on("message", async (topic, message) => {
 
             // data to update
             const data = {};
+            const nodeLocationData = extractNodeLocationFromTelemetry(telemetry);
 
             // handle device metrics and air quality telemetry battery/voltage values
             //   - deviceMetrics is the preferred source for battery/voltage
@@ -1369,6 +1371,46 @@ client.on("message", async (topic, message) => {
                     console.error(e);
                 }
 
+            }
+
+            if(telemetry.airQualityMetrics){
+                try {
+                    const nodeUpsertData = {
+                        node_id: envelope.packet.from,
+                        long_name: envelope.packet.from.toString(16),
+                        short_name: envelope.packet.from.toString(16),
+                        hardware_model: 0,
+                        is_licensed: false,
+                        role: 0,
+                        ...data,
+                        ...(nodeLocationData || {}),
+                    };
+
+                    const nodeUpdateData = {
+                        ...data,
+                        ...(nodeLocationData || {}),
+                    };
+
+                    if(nodeLocationData){
+                        nodeUpdateData.position_updated_at = new Date();
+                        nodeUpsertData.position_updated_at = new Date();
+                    }
+
+                    await prisma.node.upsert({
+                        where: {
+                            node_id: envelope.packet.from,
+                        },
+                        create: nodeUpsertData,
+                        update: nodeUpdateData,
+                    });
+
+                    const locationLog = nodeLocationData
+                        ? ` location updated: lat=${nodeLocationData.latitude} lon=${nodeLocationData.longitude}` + (nodeLocationData.altitude != null ? ` alt=${nodeLocationData.altitude}` : '')
+                        : '';
+                    console.log(`AIRQUALITY_APP node upserted for ${envelope.packet.from.toString(16)}${locationLog}`);
+                } catch (e) {
+                    console.error(e);
+                }
             }
 
             // update node telemetry in db
